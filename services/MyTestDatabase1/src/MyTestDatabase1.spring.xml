@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:p="http://www.springframework.org/schema/p" xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:context="http://www.springframework.org/schema/context" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:tx="http://www.springframework.org/schema/tx" xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+    <context:component-scan base-package="com.mytestdatabase1.controller,com.mytestdatabase1.service,com.mytestdatabase1.repository"/>
+    <bean class="com.wavemaker.runtime.data.spring.WMPropertyPlaceholderConfigurer">
+        <property name="locations">
+            <list>
+                <value>
+                    classpath:MyTestDatabase1.properties
+                </value>
+            </list>
+        </property>
+        <property name="ignoreUnresolvablePlaceholders" value="true"/>
+    </bean>
+   <bean id="MyTestDatabase1DataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource" destroy-method="close" depends-on="systemPropertyInitializer"
+                      p:driverClass="${MyTestDatabase1.driver_class}"
+                      p:jdbcUrl="${MyTestDatabase1.url}"
+                      p:user="${MyTestDatabase1.username}"
+                      p:password="${MyTestDatabase1.password}"
+                      p:idleConnectionTestPeriod="1000"
+                      p:maxPoolSize="4"
+                      p:minPoolSize="2"
+                      p:maxIdleTime="2000"
+                      p:unreturnedConnectionTimeout="600"
+                      p:contextClassLoaderSource="library"
+                      p:privilegeSpawnedThreads="true"
+                      />
+    
+    <bean id="MyTestDatabase1SessionFactory" class="org.springframework.orm.hibernate4.LocalSessionFactoryBean">
+        <property name="dataSource" ref="MyTestDatabase1DataSource"/>
+        <property name="packagesToScan" value="com.mytestdatabase1"/>
+        <property name="mappingResources">
+            <list>
+                <value>
+                    MyTestDatabase1-queries.hbm.xml
+                </value>
+            </list>
+        </property>
+        <property name="hibernateProperties">
+            <props>
+                <prop key="hibernate.dialect">
+                    ${MyTestDatabase1.dialect}
+                </prop>
+                <prop key="hibernate.show_sql">
+                    false
+                </prop>
+                <prop key="hbm2ddl.auto">
+                    update
+                </prop>
+                <prop key="hibernate.globally_quoted_identifiers">
+                false
+                </prop>
+            </props>
+        </property>
+    </bean>
+    <bean id="MyTestDatabase1TransactionManager" class="org.springframework.orm.hibernate4.HibernateTransactionManager">
+        <property name="sessionFactory" ref="MyTestDatabase1SessionFactory"/>
+    </bean>
+    <bean id="MyTestDatabase1Template" class="org.springframework.orm.hibernate4.HibernateTemplate">
+        <property name="sessionFactory" ref="MyTestDatabase1SessionFactory"/>
+    </bean>
+    <bean id="MyTestDatabase1WMQueryExecutor" class="com.wavemaker.runtime.data.dao.query.WMQueryExecutorImpl">
+        <property name="template" ref="MyTestDatabase1Template"/>
+    </bean>
+    <tx:annotation-driven/>
+
+</beans>
+
